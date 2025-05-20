@@ -1,27 +1,36 @@
+using Blazored.Toast;
 using Microsoft.EntityFrameworkCore;
 using RegistroTecnicoss.Components;
 using RegistroTecnicoss.DAL;
+using RegistroTecnicoss.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-//Obtenemos el ConStr para usarlo el contexto
+builder.Services.AddBlazoredToast();
+
 var ConStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
-//Agregamos el contexto al builder con el ConStr
 builder.Services.AddDbContextFactory<Contexto>(options =>
     options.UseSqlite(ConStr));
 
+builder.Services.AddScoped<TecnicoService>();
+
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<Contexto>();
+    db.Database.EnsureCreated();
+}
+
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts ();
 }
 

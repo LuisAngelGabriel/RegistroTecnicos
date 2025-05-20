@@ -1,77 +1,81 @@
-﻿
-@page "/Tecnico/Index"
-
+﻿@page "/Tecnico/Index"
 @inject TecnicoService tecnicoService
+@inject Blazored.Toast.Services.IToastService toastService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
 
-<PageTitle>Registro de Técnicos</PageTitle>
-<div class="container">
-    <div class="card shadow-lg">
+<PageTitle>Consulta de Técnicos</PageTitle>
 
-        <div class="d-flex justify-content-center align-items-center mt-4">
-            <h5 class="card-title mb-0">Consulta de Técnicos</h5>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white text-center">
+            <h5 class="mb-0">Consulta de Técnicos</h5>
         </div>
 
         <div class="card-body">
-
-            <div class="row">
-
-                <div class="col-3">
-                    <label class="col-form-label"><strong>Filtrar por</strong></label>
-                </div>
-
-                <div class="col text-end">
-                    <a href="/Tecnico/Create" class="btn btn-success">
-                        <span class="bi bi-plus-square"></span> Crear
-                    </a>
-                </div>
-
-            </div>
-
-            <div class="row align-items-center">
-                <div class="col-3">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Filtrar por:</label>
                     <InputSelect class="form-select" @bind-Value="Filtro" @onchange="Ordenar">
-                        <option value="TecnicoId" selected>TécnicoID</option>
+                        <option value="TecnicoId">TécnicoID</option>
                         <option value="Nombre">Nombre</option>
                     </InputSelect>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Búsqueda:</label>
                     <div class="input-group">
-                        <input class="form-control" @bind="ValorFiltro" @oninput="Buscar" placeholder="Buscar por nombre" />
+                        <input class="form-control" @bind="ValorFiltro" @oninput="Buscar" placeholder="Buscar por nombre o ID" />
                         <button type="button" class="btn btn-primary" @onclick="Buscar">
                             <i class="bi bi-search me-1"></i> Buscar
                         </button>
                     </div>
                 </div>
+
+                <div class="col-md-4 text-end mt-4 mt-md-0">
+                    <a href="/Tecnico/Create" class="btn btn-success">
+                        <i class="bi bi-plus-circle me-1"></i> Crear
+                    </a>
+                </div>
             </div>
 
-            <table class="table table-hover">
-                <thead class="table  table-striped text-black">
+            <table class="table table-bordered text-center align-middle">
+                <thead class="table-light">
                     <tr>
-                        <th>TecnicoId</th>
-                        <th>Nombre</th>
-                        <th>Sueldo</th>
+                        <th>TécnicoID</th>
+                        <th>Nombres</th>
+                        <th>Sueldo por Hora</th>
                         <th>Editar</th>
-                        <th>Borrar</th>
+                        <th>Eliminar</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var tecnico in ListaTecnicos)
+                    @if (ListaTecnicos.Count == 0)
                     {
                         <tr>
-                            <td> @tecnico.TecnicoId</td>
-                            <td> @tecnico.Nombre</td>
-                            <td>
-                                <span>@tecnico.SueldoHora.ToString("F2")</span>
-                            </td>
-
-                            <td>
-                                <a href="/Tecnico/Edit/@tecnico.TecnicoId" class="btn btn-outline-primary bi bi-pencil-square"></a>
-                            </td>
-                            <td>
-                                <a type="button" class="btn btn-danger bi bi-trash" href="/Tecnico/Eliminar/@tecnico.TecnicoId"> </a>
-                            </td>
+                            <td colspan="5" class="text-muted">No se encontraron técnicos.</td>
                         </tr>
+                    }
+                    else
+                    {
+                        @foreach (var tecnico in ListaTecnicos)
+                        {
+                            <tr>
+                                <td>@tecnico.TecnicoId</td>
+                                <td>@tecnico.Nombre</td>
+                                <td>@tecnico.SueldoHora.ToString("F2")</td>
+                                <td>
+                                    <a href="/Tecnico/Edit/@tecnico.TecnicoId" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                </td>
+                                <td>
+                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => Eliminar(tecnico.TecnicoId)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
@@ -80,7 +84,7 @@
 </div>
 
 @code {
-    public List<Tecnico> ListaTecnicos { get; set; } = new List<Tecnico>();
+    public List<Tecnico> ListaTecnicos { get; set; } = new();
     public string Filtro { get; set; } = "TecnicoId";
     public string ValorFiltro { get; set; } = string.Empty;
 
@@ -91,19 +95,21 @@
 
     private async Task CargarYOrdenar()
     {
-        var lista = await tecnicoService.Listar(t => t.TecnicoId > 0);
+        var lista = await tecnicoService.Listar(t => true);
 
         if (!string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            lista = lista
-                .Where(t => t.Nombre != null && t.Nombre.ToLower().Contains(ValorFiltro.ToLower()))
-                .ToList();
+            if (Filtro == "TecnicoId" && int.TryParse(ValorFiltro, out int id))
+                lista = lista.Where(t => t.TecnicoId == id).ToList();
+            else if (Filtro == "Nombre")
+                lista = lista.Where(t => t.Nombre != null && t.Nombre.ToLower().Contains(ValorFiltro.ToLower())).ToList();
         }
 
-        if (Filtro == "Nombre")
-            ListaTecnicos = lista.OrderBy(t => t.Nombre).ToList();
-        else
-            ListaTecnicos = lista.OrderBy(t => t.TecnicoId).ToList();
+        ListaTecnicos = Filtro switch
+        {
+            "Nombre" => lista.OrderBy(t => t.Nombre).ToList(),
+            _ => lista.OrderBy(t => t.TecnicoId).ToList()
+        };
     }
 
     private async Task Buscar()
@@ -119,10 +125,10 @@
 
     private async Task Eliminar(int id)
     {
-        var result = await tecnicoService.Eliminar(id);
-        if (result)
+        if (await tecnicoService.Eliminar(id))
         {
             await CargarYOrdenar();
         }
     }
+}
 }
