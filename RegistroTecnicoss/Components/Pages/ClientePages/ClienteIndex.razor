@@ -1,0 +1,77 @@
+﻿@page "/Cliente/Index"
+@using RegistroTecnicoss.Models
+@inject ClienteService clienteService
+@inject NavigationManager navigationManager
+@inject IToastService toastService
+@rendermode InteractiveServer
+
+<PageTitle>Listado de Clientes</PageTitle>
+
+<h3 class="text-center mb-4">Listado de Clientes</h3>
+
+<div class="container">
+    <div class="mb-3 text-end">
+        <a class="btn btn-outline-primary" href="/Cliente/Crear">
+            <i class="bi bi-plus-circle"></i> Nuevo Cliente
+        </a>
+    </div>
+
+    @if (Clientes == null)
+    {
+        <div class="alert alert-info text-center">Cargando clientes...</div>
+    }
+    else if (Clientes.Count == 0)
+    {
+        <div class="alert alert-warning text-center">No hay clientes registrados.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered shadow-sm">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha Ingreso</th>
+                        <th>Nombre</th>
+                        <th>Dirección</th>
+                        <th>RNC</th>
+                        <th>Límite Crédito</th>
+                        <th>Técnico Encargado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cliente in Clientes)
+                    {
+                        <tr class="text-center">
+                            <td>@cliente.ClienteId</td>
+                            <td>@cliente.FechaIngreso.ToShortDateString()</td>
+                            <td>@cliente.Nombres</td>
+                            <td>@cliente.Direccion</td>
+                            <td>@cliente.Rnc</td>
+                            <td>@cliente.LimiteCredito.ToString("N2")</td>
+                            <td>@cliente.Tecnico?.Nombre</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-success me-1" href="/Cliente/Editar/@cliente.ClienteId">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a class="btn btn-sm btn-outline-danger" href="/Cliente/Eliminar/@cliente.ClienteId">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Cliente>? Clientes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Clientes = await clienteService.ListarTodo();
+    }
+}
