@@ -17,7 +17,7 @@
                 <div class="col-md-3">
                     <label class="form-label fw-bold">Filtrar por:</label>
                     <InputSelect class="form-select" @bind-Value="Filtro" @onchange="Ordenar">
-                        <option value="TecnicoId">TécnicoID</option>
+                        <option value="TecnicoId">Técnico Id</option>
                         <option value="Nombre">Nombre</option>
                     </InputSelect>
                 </div>
@@ -39,21 +39,20 @@
                 </div>
             </div>
 
-            <table class="table table-bordered text-center align-middle">
+            <table class="table table-bordered text-center align-middle" style="border-color: #dee2e6;">
                 <thead class="table-light">
                     <tr>
-                        <th>TécnicoID</th>
+                        <th>Técnico Id</th>
                         <th>Nombres</th>
                         <th>Sueldo por Hora</th>
                         <th>Editar</th>
-                        <th>Eliminar</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (ListaTecnicos.Count == 0)
                     {
                         <tr>
-                            <td colspan="5" class="text-muted">No se encontraron técnicos.</td>
+                            <td colspan="4" class="text-muted">No se encontraron técnicos.</td>
                         </tr>
                     }
                     else
@@ -68,11 +67,6 @@
                                     <a href="/Tecnico/Edit/@tecnico.TecnicoId" class="btn btn-outline-success btn-sm">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => Eliminar(tecnico.TecnicoId)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
                                 </td>
                             </tr>
                         }
@@ -122,13 +116,4 @@
         Filtro = e.Value?.ToString() ?? "TecnicoId";
         await CargarYOrdenar();
     }
-
-    private async Task Eliminar(int id)
-    {
-        if (await tecnicoService.Eliminar(id))
-        {
-            await CargarYOrdenar();
-        }
-    }
-}
 }
