@@ -68,12 +68,7 @@
                                     <a href="/Tecnico/Edit/@tecnico.TecnicoId" class="btn btn-outline-success btn-sm">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => Eliminar(tecnico.TecnicoId)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
+                                </td>                          
                             </tr>
                         }
                     }
@@ -122,13 +117,4 @@
         Filtro = e.Value?.ToString() ?? "TecnicoId";
         await CargarYOrdenar();
     }
-
-    private async Task Eliminar(int id)
-    {
-        if (await tecnicoService.Eliminar(id))
-        {
-            await CargarYOrdenar();
-        }
-    }
-}
 }
