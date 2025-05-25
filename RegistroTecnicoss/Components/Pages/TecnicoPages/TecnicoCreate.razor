@@ -1,104 +1,87 @@
 ﻿@page "/Tecnico/Create"
 @inject TecnicoService tecnicoService
-@inject IToastService toastService
-@inject NavigationManager navigationManager
-@using RegistroTecnicoss.Models
 @inject Blazored.Toast.Services.IToastService toastService
+@inject NavigationManager navigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Registro de Técnicos</PageTitle>
 
-<EditForm Model="Tecnico" OnValidSubmit="Guardar">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <label class="text-danger">@Message</label>
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h5 class="mb-0">Registro de Técnicos</h5>
+        </div>
 
-    <div class="container mt-4">
-        <div class="card shadow-lg">
-            <div class="card-header bg-primary text-white text-center">
-                <h5 class="mb-0">Registro de Técnicos</h5>
-            </div>
+        <EditForm Model="Tecnico" OnValidSubmit="GuardarTecnico">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label">TécnicoId:</label>
-                    <input class="form-control" value="@ProximoId" disabled />
+                    <label class="form-label">Técnico Id</label>
+                    <InputNumber class="form-control" @bind-Value="Tecnico.TecnicoId" />
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Nombres:</label>
+                    <label class="form-label">Nombre</label>
                     <InputText class="form-control" @bind-Value="Tecnico.Nombre" />
                     <ValidationMessage For="@(() => Tecnico.Nombre)" />
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Sueldo por hora:</label>
+                    <label class="form-label">Sueldo por hora</label>
                     <InputNumber class="form-control" @bind-Value="Tecnico.SueldoHora" />
                     <ValidationMessage For="@(() => Tecnico.SueldoHora)" />
                 </div>
             </div>
 
-            <div class="card-footer text-center">
-                <button type="button" class="btn btn-outline-primary me-2" @onclick="Nuevo">
-                    <i class="bi bi-plus-lg"></i> Nuevo
+            <div class="card-footer d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-outline-primary" @onclick="LimpiarFormulario">
+                    <i class="bi bi-plus-circle"></i> Limpiar
                 </button>
 
-                <button type="submit" class="btn btn-outline-success me-2">
+                <button type="submit" class="btn btn-outline-success">
                     <i class="bi bi-check-circle"></i> Guardar
                 </button>
 
                 <a href="/Tecnico/Index" class="btn btn-outline-danger">
-                    <i class="bi bi-arrow-left"></i> Retroceder
+                    <i class="bi bi-arrow-left"></i> Volver
                 </a>
             </div>
-        </div>
+        </EditForm>
     </div>
-</EditForm>
+</div>
 
 @code {
-    public Models.Tecnico Tecnico { get; set; } = new Models.Tecnico();
-    private string Message { get; set; } = string.Empty;
-    private int ProximoId { get; set; }
+    public RegistroTecnicoss.Models.Tecnico Tecnico { get; set; } = new();
 
-    protected override async Task OnInitializedAsync()
+    private async Task GuardarTecnico()
     {
-        ProximoId = await ObtenerSiguienteId();
-    }
+        bool nombreDuplicado = await tecnicoService.ExisteNombre(Tecnico.Nombre, 0);
 
-    private async Task<int> ObtenerSiguienteId()
-    {
-        var lista = await tecnicoService.Listar(t => true);
-        return (lista == null || !lista.Any()) ? 1 : lista.Max(t => t.TecnicoId) + 1;
-    }
-
-    private async Task Guardar()
-    {
-        Message = string.Empty;
-
-        if (await tecnicoService.ExisteNombre(Tecnico.Nombre))
+        if (nombreDuplicado)
         {
-            Message = "Ya existe un técnico con este nombre.";
-            toastService.ShowError(Message);
+            toastService.ShowError("Ya existe un técnico con este nombre. Por favor, elige otro nombre.");
             return;
         }
 
-        var result = await tecnicoService.Guardar(Tecnico);
-        if (result)
+        bool guardado = await tecnicoService.Guardar(Tecnico);
+
+        if (guardado)
         {
-            toastService.ShowSuccess("Técnico guardado correctamente.");
-            await Nuevo();
+            toastService.ShowSuccess("Técnico registrado exitosamente.");
+            LimpiarFormulario();
         }
         else
         {
-            toastService.ShowError("No se pudo guardar el técnico. Verifica los datos.");
+            toastService.ShowError("No se pudo guardar el técnico. Intente nuevamente.");
         }
     }
 
-    private async Task Nuevo()
+    private void LimpiarFormulario()
     {
-        Message = string.Empty;
-        Tecnico = new Models.Tecnico();
-        ProximoId = await ObtenerSiguienteId();
-        StateHasChanged();
+        Tecnico = new();
     }
 }
+
+
