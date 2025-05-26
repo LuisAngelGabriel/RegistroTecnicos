@@ -1,0 +1,86 @@
+﻿@page "/Cliente/Eliminar/{ClienteId:int}"
+@using RegistroTecnicoss.Models
+@inject ClienteService clienteService
+@inject Blazored.Toast.Services.IToastService toastService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Eliminar Cliente</PageTitle>
+
+@if (cliente == null)
+{
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <strong>Cargando datos o cliente no encontrado...</strong>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="card shadow-lg">
+            <div class="card-header bg-danger text-white text-center">
+                <h5 class="mb-0">Eliminar Cliente</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="alert alert-danger text-center fw-bold">
+                    ¿Estás seguro de que quieres eliminar este cliente?
+                </div>
+                <div class="card border shadow-sm">
+                    <div class="card-header bg-light text-center">
+                        <strong>Datos del Cliente</strong>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Cliente Id:</strong> @cliente.ClienteId</p>
+                        <p><strong>Nombres:</strong> @cliente.Nombres</p>
+                        <p><strong>RNC:</strong> @cliente.Rnc</p>
+                        <p><strong>Límite Crédito:</strong> @cliente.LimiteCredito.ToString("N2")</p>
+                        <p><strong>Técnico:</strong> @cliente.Tecnico?.Nombre</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer d-flex justify-content-center gap-3">
+                <button class="btn btn-outline-danger" @onclick="ConfirmarEliminar">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+                <a href="/Cliente/Index" class="btn btn-outline-primary">
+                    <i class="bi bi-box-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int ClienteId { get; set; }
+    private Cliente? cliente;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cliente = await clienteService.Buscar(ClienteId);
+        if (cliente == null)
+        {
+            toastService.ShowError($"Cliente con ID {ClienteId} no encontrado.");
+            navigationManager.NavigateTo("/Cliente/Index");
+        }
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        if (cliente != null)
+        {
+            var ok = await clienteService.Eliminar(cliente.ClienteId);
+            if (ok)
+            {
+                toastService.ShowSuccess("Cliente eliminado correctamente.");
+                navigationManager.NavigateTo("/Cliente/Index");
+            }
+            else
+            {
+                toastService.ShowError("Error al eliminar el cliente.");
+            }
+        }
+    }
+}
