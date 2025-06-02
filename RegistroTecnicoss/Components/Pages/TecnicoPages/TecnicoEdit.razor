@@ -65,7 +65,7 @@ else
     [Parameter]
     public int TecnicoId { get; set; }
 
-    public RegistroTecnicoss.Models.Tecnico? Tecnico { get; set; }
+    public RegistroTecnicoss.Models.Tecnicos? Tecnico { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -83,7 +83,7 @@ else
         if (Tecnico is null)
             return;
 
-        bool nombreDuplicado = await tecnicoService.ExisteNombre(Tecnico.Nombre, Tecnico.TecnicoId);
+        bool nombreDuplicado = await tecnicoService.ExisteNombre(Tecnico.Nombre);
 
         if (nombreDuplicado)
         {
@@ -104,4 +104,3 @@ else
         }
     }
 }
-

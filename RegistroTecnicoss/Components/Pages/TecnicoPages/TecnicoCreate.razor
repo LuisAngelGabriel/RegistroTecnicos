@@ -56,14 +56,22 @@
 </EditForm>
 
 @code {
+<<<<<<< Updated upstream
     public Models.Tecnico Tecnico { get; set; } = new Models.Tecnico();
     private string Message { get; set; } = string.Empty;
     private int ProximoId { get; set; }
+=======
+    public RegistroTecnicoss.Models.Tecnicos Tecnico { get; set; } = new();
+>>>>>>> Stashed changes
 
     protected override async Task OnInitializedAsync()
     {
+<<<<<<< Updated upstream
         ProximoId = await ObtenerSiguienteId();
     }
+=======
+        bool nombreDuplicado = await tecnicoService.ExisteNombre(Tecnico.Nombre);
+>>>>>>> Stashed changes
 
     private async Task<int> ObtenerSiguienteId()
     {
@@ -101,4 +109,8 @@
         ProximoId = await ObtenerSiguienteId();
         StateHasChanged();
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes

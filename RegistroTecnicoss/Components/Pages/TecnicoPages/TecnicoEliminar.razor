@@ -9,7 +9,11 @@
 
 @if (Tecnico == null)
 {
-    <p><em>Cargando datos del técnico o técnico no encontrado...</em></p>
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <strong>Cargando datos del técnico o técnico no encontrado...</strong>
+        </div>
+    </div>
 }
 else
 {
@@ -37,7 +41,7 @@ else
             </div>
 
             <div class="card-footer text-center">
-                <button class="btn btn-outline-danger me-2" @onclick="EliminarTecnicoConfirmado">
+                <button class="btn btn-outline-danger me-2" @onclick="EliminarTecnicoConfirmado" disabled="@eliminando">
                     <i class="bi bi-trash"></i> Eliminar
                 </button>
                 <a href="/Tecnico/Index" class="btn btn-outline-primary">
@@ -52,7 +56,9 @@ else
     [Parameter]
     public int TecnicoId { get; set; }
 
-    public Tecnico? Tecnico { get; set; }
+    public Tecnicos? Tecnico { get; set; }
+
+    private bool eliminando = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,8 +73,10 @@ else
 
     private async Task EliminarTecnicoConfirmado()
     {
-        if (Tecnico != null)
+        if (Tecnico != null && !eliminando)
         {
+            eliminando = true;
+
             var eliminadoExitosamente = await tecnicosService.Eliminar(Tecnico.TecnicoId);
 
             if (eliminadoExitosamente)
@@ -79,6 +87,7 @@ else
             else
             {
                 toastService.ShowError("No se pudo eliminar el técnico. Verifique si existen dependencias o errores.");
+                eliminando = false;
             }
         }
     }

@@ -65,7 +65,7 @@
                                 <td>@tecnico.Nombre</td>
                                 <td>@tecnico.SueldoHora.ToString("F2")</td>
                                 <td>
-                                    <a href="/Tecnico/Edit/@tecnico.TecnicoId" class="btn btn-outline-success btn-sm">
+                                    <a href="/Tecnico/Edit/@tecnico.TecnicoId" class="btn btn-outline-primary btn-sm">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                 </td>
@@ -84,7 +84,7 @@
 </div>
 
 @code {
-    public List<Tecnico> ListaTecnicos { get; set; } = new();
+    public List<Tecnicos> ListaTecnicos { get; set; } = new();
     public string Filtro { get; set; } = "TecnicoId";
     public string ValorFiltro { get; set; } = string.Empty;
 
@@ -102,7 +102,7 @@
             if (Filtro == "TecnicoId" && int.TryParse(ValorFiltro, out int id))
                 lista = lista.Where(t => t.TecnicoId == id).ToList();
             else if (Filtro == "Nombre")
-                lista = lista.Where(t => t.Nombre != null && t.Nombre.ToLower().Contains(ValorFiltro.ToLower())).ToList();
+                lista = lista.Where(t => t.Nombre != null && t.Nombre.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         ListaTecnicos = Filtro switch

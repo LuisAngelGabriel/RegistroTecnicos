@@ -2,7 +2,7 @@
 
 namespace RegistroTecnicoss.Models
 {
-    public class Tecnico
+    public class Tecnicos
     {
         [Key]
         public int TecnicoId { get; set; }
