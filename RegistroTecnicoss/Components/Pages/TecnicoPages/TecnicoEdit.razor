@@ -1,10 +1,8 @@
 ﻿@page "/Tecnico/Edit/{TecnicoId:int}"
 @inject TecnicoService tecnicoService
-@inject IToastService toastService
+@inject Blazored.Toast.Services.IToastService toastService
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
-@inject Blazored.Toast.Services.IToastService toastService
-
 
 <PageTitle>Editar Técnico</PageTitle>
 
@@ -30,7 +28,7 @@ else
 
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label">Técnico ID</label>
+                        <label class="form-label">Técnico Id</label>
                         <InputNumber class="form-control" @bind-Value="Tecnico.TecnicoId" readonly />
                     </div>
 
@@ -47,13 +45,17 @@ else
                     </div>
                 </div>
 
-                <div class="card-footer text-center">
-                    <button type="submit" class="btn btn-outline-success me-2">
+                <div class="card-footer d-flex justify-content-center gap-3">
+                    <a href="/Tecnico/Index" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+
+                    <button type="submit" class="btn btn-outline-success">
                         <i class="bi bi-check-circle"></i> Guardar
                     </button>
 
-                    <a href="/Tecnico/Index" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Volver
+                    <a href="/Tecnico/Eliminar/@Tecnico.TecnicoId" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Eliminar
                     </a>
                 </div>
             </EditForm>
