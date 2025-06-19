@@ -1,0 +1,130 @@
+﻿@page "/Cliente/Editar/{id:int}"
+@inject ClienteService clienteService
+@inject TecnicoService tecnicoService
+@inject Blazored.Toast.Services.IToastService toastService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Editar Cliente</PageTitle>
+
+@if (cliente is null)
+{
+    <div class="container mt-5">
+        <div class="alert alert-warning text-center">
+            <strong>Cargando cliente o no encontrado...</strong>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+                <h5 class="mb-0">Editar Cliente</h5>
+            </div>
+
+            <EditForm Model="cliente" OnValidSubmit="Guardar">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Cliente ID</label>
+                        <InputNumber class="form-control" @bind-Value="cliente.ClienteId" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombres</label>
+                        <InputText class="form-control" @bind-Value="cliente.Nombres" />
+                        <ValidationMessage For="@(() => cliente.Nombres)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <InputText class="form-control" @bind-Value="cliente.Direccion" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">RNC</label>
+                        <InputText class="form-control" @bind-Value="cliente.Rnc" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Límite de Crédito</label>
+                        <InputNumber class="form-control" @bind-Value="cliente.LimiteCredito" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Técnico Encargado</label>
+                        <InputSelect class="form-select" @bind-Value="cliente.TecnicoId">
+                            <option disabled value="0">Seleccione un técnico</option>
+                            @foreach (var tecnico in tecnicos)
+                            {
+                                <option value="@tecnico.TecnicoId">@tecnico.Nombre</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="card-footer d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-outline-primary" @onclick="Volver">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </button>
+
+                    <button type="submit" class="btn btn-outline-success">
+                        <i class="bi bi-check-circle"></i> Guardar
+                    </button>
+
+                    <a href="/Cliente/Eliminar/@cliente.ClienteId" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Clientes? cliente;
+    private List<Tecnicos> tecnicos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        cliente = await clienteService.Buscar(id);
+
+        if (cliente is null)
+        {
+            toastService.ShowError($"Cliente con ID {id} no encontrado.");
+            navigationManager.NavigateTo("/Clientes/Index");
+            return;
+        }
+
+        tecnicos = await tecnicoService.Listar(_ => true);
+    }
+
+    private async Task Guardar()
+    {
+        if (cliente is null)
+            return;
+
+        var ok = await clienteService.Guardar(cliente);
+
+        if (ok)
+        {
+            toastService.ShowSuccess("Cliente actualizado correctamente.");
+            navigationManager.NavigateTo("/Clientes/Index");
+        }
+        else
+        {
+            toastService.ShowError("No se pudo guardar el cliente. Verifique los datos.");
+        }
+    }
+
+    private void Volver()
+    {
+        navigationManager.NavigateTo("/Clientes/Index");
+    }
+}

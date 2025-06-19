@@ -1,0 +1,85 @@
+﻿@page "/Cliente/Eliminar/{ClienteId:int}"
+@using RegistroTecnicoss.Models
+@inject ClienteService clienteService
+@inject Blazored.Toast.Services.IToastService toastService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Eliminar Cliente</PageTitle>
+
+@if (Cliente == null)
+{
+    <p><em>Cargando datos del cliente o cliente no encontrado...</em></p>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="card shadow-lg">
+            <div class="card-header bg-danger text-white text-center">
+                <h5 class="mb-0">Eliminar Cliente</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="alert alert-danger text-center fw-bold">
+                    ¿Estás seguro de que quieres eliminar el Cliente?
+                </div>
+
+                <div class="card border border-1 shadow-sm">
+                    <div class="card-header text-center bg-light">
+                        <strong>Datos del Cliente</strong>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>ClienteId:</strong> @Cliente.ClienteId</p>
+                        <p><strong>Nombres:</strong> @Cliente.Nombres</p>
+                        <p><strong>RNC:</strong> @Cliente.Rnc</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer text-center">
+                <button class="btn btn-outline-danger me-2" @onclick="EliminarClienteConfirmado">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+                <a href="/Clientes/Index" class="btn btn-outline-primary">
+                    <i class="bi bi-box-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int ClienteId { get; set; }
+
+    public Clientes? Cliente { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Cliente = await clienteService.Buscar(ClienteId);
+
+        if (Cliente == null)
+        {
+            toastService.ShowError($"Cliente con ID {ClienteId} no encontrado.");
+            navigationManager.NavigateTo("/Clientes/Index");
+        }
+    }
+
+    private async Task EliminarClienteConfirmado()
+    {
+        if (Cliente != null)
+        {
+            var eliminado = await clienteService.Eliminar(Cliente.ClienteId);
+
+            if (eliminado)
+            {
+                toastService.ShowSuccess("Cliente eliminado correctamente.");
+                navigationManager.NavigateTo("/Clientes/Index");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo eliminar el cliente. Verifique si tiene dependencias.");
+            }
+        }
+    }
+}
