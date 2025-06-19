@@ -1,4 +1,4 @@
-﻿@page "/Cliente/Editar/{ClienteId:int}"
+@page "/Cliente/Editar/{ClienteId:int}"
 @using RegistroTecnicoss.Models
 @inject ClienteService clienteService
 @inject TecnicoService tecnicoService
@@ -92,6 +92,110 @@ else
         {
             toastService.ShowError($"Cliente con ID {ClienteId} no encontrado.");
             navigationManager.NavigateTo("/Cliente/Index");
+﻿@page "/Cliente/Crear/{ClienteId:int?}"
+@inject ClienteService ClienteService
+@inject TecnicoService TecnicoService
+@inject NavigationManager Navigation
+@inject Blazored.Toast.Services.IToastService toastService
+@rendermode InteractiveServer
+
+<PageTitle>Registro de Clientes</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h5 class="mb-0">Registro de Clientes</h5>
+        </div>
+
+        <EditForm Model="Cliente" OnValidSubmit="GuardarCliente">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Cliente ID</label>
+                    <InputNumber class="form-control" @bind-Value="Cliente.ClienteId" disabled />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Nombres</label>
+                    <InputText class="form-control" @bind-Value="Cliente.Nombres" />
+                    <ValidationMessage For="@(() => Cliente.Nombres)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">RNC</label>
+                    <InputText class="form-control" @bind-Value="Cliente.Rnc" />
+                    <ValidationMessage For="@(() => Cliente.Rnc)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Dirección</label>
+                    <InputText class="form-control" @bind-Value="Cliente.Direccion" />
+                    <ValidationMessage For="@(() => Cliente.Direccion)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Límite de Crédito</label>
+                    <InputNumber class="form-control" @bind-Value="Cliente.LimiteCredito" />
+                    <ValidationMessage For="@(() => Cliente.LimiteCredito)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Técnico Encargado</label>
+                    <InputSelect class="form-select" @bind-Value="Cliente.TecnicoId">
+                        <option value="">Seleccione un técnico</option>
+                        @foreach (var tecnico in ListaTecnicos)
+                        {
+                            <option value="@tecnico.TecnicoId">@tecnico.Nombre</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Cliente.TecnicoId)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Fecha de Ingreso</label>
+                    <InputDate class="form-control" @bind-Value="Cliente.FechaIngreso" />
+                    <ValidationMessage For="@(() => Cliente.FechaIngreso)" />
+                </div>
+            </div>
+
+            <div class="card-footer d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-outline-primary" @onclick="LimpiarFormulario">
+                    <i class="bi bi-plus-circle"></i> Limpiar
+                </button>
+
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-check-circle"></i> Guardar
+                </button>
+
+                <a href="/Clientes/Index" class="btn btn-outline-danger">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? ClienteId { get; set; }
+
+    public Clientes Cliente { get; set; } = new();
+    public List<Tecnicos> ListaTecnicos { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaTecnicos = await TecnicoService.Listar(t => true);
+
+        if (ClienteId.HasValue)
+        {
+            var clienteExistente = await ClienteService.Buscar(ClienteId.Value);
+            if (clienteExistente != null)
+                Cliente = clienteExistente;
+        }
+        else
+        {
+            Cliente.FechaIngreso = DateTime.Today;
         }
     }
 
@@ -113,5 +217,25 @@ else
         {
             toastService.ShowError("Error al actualizar el cliente.");
         }
+    }
+        var guardado = await ClienteService.Guardar(Cliente);
+
+        if (guardado)
+        {
+            toastService.ShowSuccess("Cliente guardado exitosamente.");
+            LimpiarFormulario();
+        }
+        else
+        {
+            toastService.ShowError("Error al guardar el cliente. Intente nuevamente.");
+        }
+    }
+
+    private void LimpiarFormulario()
+    {
+        Cliente = new Clientes
+        {
+            FechaIngreso = DateTime.Today
+        };
     }
 }

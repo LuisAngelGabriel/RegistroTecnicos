@@ -1,5 +1,6 @@
-﻿@page "/Cliente/Editar/{ClienteId:int}"
+@page "/Cliente/Editar/{ClienteId:int}"
 @using RegistroTecnicoss.Models
+@page "/Cliente/Editar/{id:int}"
 @inject ClienteService clienteService
 @inject TecnicoService tecnicoService
 @inject Blazored.Toast.Services.IToastService toastService
@@ -9,6 +10,7 @@
 <PageTitle>Editar Cliente</PageTitle>
 
 @if (cliente == null)
+@if (cliente is null)
 {
     <div class="container mt-5">
         <div class="alert alert-warning text-center">
@@ -25,6 +27,7 @@ else
             </div>
 
             <EditForm Model="cliente" OnValidSubmit="GuardarCliente">
+            <EditForm Model="cliente" OnValidSubmit="Guardar">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
@@ -59,6 +62,40 @@ else
                             }
                         </InputSelect>
                         <ValidationMessage For="@(() => cliente.TecnicoId)" />
+                        <label class="form-label">Cliente ID</label>
+                        <InputNumber class="form-control" @bind-Value="cliente.ClienteId" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombres</label>
+                        <InputText class="form-control" @bind-Value="cliente.Nombres" />
+                        <ValidationMessage For="@(() => cliente.Nombres)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <InputText class="form-control" @bind-Value="cliente.Direccion" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">RNC</label>
+                        <InputText class="form-control" @bind-Value="cliente.Rnc" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Límite de Crédito</label>
+                        <InputNumber class="form-control" @bind-Value="cliente.LimiteCredito" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Técnico Encargado</label>
+                        <InputSelect class="form-select" @bind-Value="cliente.TecnicoId">
+                            <option disabled value="0">Seleccione un técnico</option>
+                            @foreach (var tecnico in tecnicos)
+                            {
+                                <option value="@tecnico.TecnicoId">@tecnico.Nombre</option>
+                            }
+                        </InputSelect>
                     </div>
                 </div>
 
@@ -69,6 +106,14 @@ else
                     <button type="submit" class="btn btn-outline-success">
                         <i class="bi bi-check-circle"></i> Guardar
                     </button>
+                    <button type="button" class="btn btn-outline-primary" @onclick="Volver">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </button>
+
+                    <button type="submit" class="btn btn-outline-success">
+                        <i class="bi bi-check-circle"></i> Guardar
+                    </button>
+
                     <a href="/Cliente/Eliminar/@cliente.ClienteId" class="btn btn-outline-danger">
                         <i class="bi bi-trash"></i> Eliminar
                     </a>
@@ -113,5 +158,49 @@ else
         {
             toastService.ShowError("Error al actualizar el cliente.");
         }
+    }
+}
+
+    [Parameter]
+    public int id { get; set; }
+
+    private Clientes? cliente;
+    private List<Tecnicos> tecnicos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        cliente = await clienteService.Buscar(id);
+
+        if (cliente is null)
+        {
+            toastService.ShowError($"Cliente con ID {id} no encontrado.");
+            navigationManager.NavigateTo("/Clientes/Index");
+            return;
+        }
+
+        tecnicos = await tecnicoService.Listar(_ => true);
+    }
+
+    private async Task Guardar()
+    {
+        if (cliente is null)
+            return;
+
+        var ok = await clienteService.Guardar(cliente);
+
+        if (ok)
+        {
+            toastService.ShowSuccess("Cliente actualizado correctamente.");
+            navigationManager.NavigateTo("/Clientes/Index");
+        }
+        else
+        {
+            toastService.ShowError("No se pudo guardar el cliente. Verifique los datos.");
+        }
+    }
+
+    private void Volver()
+    {
+        navigationManager.NavigateTo("/Clientes/Index");
     }
 }

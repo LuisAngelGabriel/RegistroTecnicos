@@ -1,4 +1,4 @@
-﻿@page "/Cliente/Index"
+@page "/Cliente/Index"
 @using RegistroTecnicoss.Models
 @inject ClienteService clienteService
 @inject NavigationManager navigationManager
@@ -73,5 +73,130 @@
     protected override async Task OnInitializedAsync()
     {
         Clientes = await clienteService.ListarTodo();
+@page "/Clientes/Index"
+@inject ClienteService ClienteService
+@inject NavigationManager Navigation
+
+<PageTitle>Consulta de Clientes</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white text-center">
+            <h5 class="mb-0">Consulta de Clientes</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Filtrar por:</label>
+                    <InputSelect class="form-select" @bind-Value="Filtro" @onchange="Ordenar">
+                        <option value="ClienteId">Cliente Id</option>
+                        <option value="Nombres">Nombres</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Búsqueda:</label>
+                    <div class="input-group">
+                        <input class="form-control" @bind="ValorFiltro" @oninput="Buscar" placeholder="Buscar..." />
+                        <button type="button" class="btn btn-primary" @onclick="Buscar">
+                            <i class="bi bi-search me-1"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-4 text-end mt-4 mt-md-0">
+                    <a href="/Cliente/Crear" class="btn btn-success">
+                        <i class="bi bi-plus-circle me-1"></i> Crear
+                    </a>
+                </div>
+            </div>
+
+            <table class="table table-bordered text-center align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cliente Id</th>
+                        <th>Nombres</th>
+                        <th>Dirección</th>
+                        <th>RNC</th>
+                        <th>Límite de Crédito</th>
+                        <th>Técnico encargado</th>
+                        <th>Fecha de Ingreso</th>
+                        <th>Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ListaClientes.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-muted">No se encontraron clientes.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var cliente in ListaClientes)
+                        {
+                            <tr>
+                                <td>@cliente.ClienteId</td>
+                                <td>@cliente.Nombres</td>
+                                <td>@cliente.Direccion</td>
+                                <td>@cliente.Rnc</td>
+                                <td>@cliente.LimiteCredito.ToString("F2")</td>
+                                <td>@cliente.Tecnico?.Nombre</td>
+                                <td>@cliente.FechaIngreso.ToShortDateString()</td>
+                                <td>
+                                    <a href="/Cliente/Editar/@cliente.ClienteId" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
+
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    public List<Clientes> ListaClientes { get; set; } = new();
+    public string Filtro { get; set; } = "ClienteId";
+    public string ValorFiltro { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarYOrdenar();
+    }
+
+    private async Task CargarYOrdenar()
+    {
+        var lista = await ClienteService.Listar(c => true);
+
+        if (!string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            if (Filtro == "ClienteId" && int.TryParse(ValorFiltro, out int id))
+                lista = lista.Where(c => c.ClienteId == id).ToList();
+            else if (Filtro == "Nombres")
+                lista = lista.Where(c => !string.IsNullOrEmpty(c.Nombres) && c.Nombres.Contains(ValorFiltro, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        ListaClientes = Filtro switch
+        {
+            "Nombres" => lista.OrderBy(c => c.Nombres).ToList(),
+            _ => lista.OrderBy(c => c.ClienteId).ToList()
+        };
+    }
+
+    private async Task Buscar()
+    {
+        await CargarYOrdenar();
+    }
+
+    private async Task Ordenar(ChangeEventArgs e)
+    {
+        Filtro = e.Value?.ToString() ?? "ClienteId";
+        await CargarYOrdenar();
     }
 }

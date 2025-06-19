@@ -1,4 +1,4 @@
-﻿@page "/Cliente/Eliminar/{ClienteId:int}"
+@page "/Cliente/Eliminar/{ClienteId:int}"
 @using RegistroTecnicoss.Models
 @inject ClienteService clienteService
 @inject Blazored.Toast.Services.IToastService toastService
@@ -14,6 +14,10 @@
             <strong>Cargando datos o cliente no encontrado...</strong>
         </div>
     </div>
+
+@if (Cliente == null)
+{
+    <p><em>Cargando datos del cliente o cliente no encontrado...</em></p>
 }
 else
 {
@@ -37,6 +41,17 @@ else
                         <p><strong>RNC:</strong> @cliente.Rnc</p>
                         <p><strong>Límite Crédito:</strong> @cliente.LimiteCredito.ToString("N2")</p>
                         <p><strong>Técnico:</strong> @cliente.Tecnico?.Nombre</p>
+                    ¿Estás seguro de que quieres eliminar el Cliente?
+                </div>
+
+                <div class="card border border-1 shadow-sm">
+                    <div class="card-header text-center bg-light">
+                        <strong>Datos del Cliente</strong>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>ClienteId:</strong> @Cliente.ClienteId</p>
+                        <p><strong>Nombres:</strong> @Cliente.Nombres</p>
+                        <p><strong>RNC:</strong> @Cliente.Rnc</p>
                     </div>
                 </div>
             </div>
@@ -46,6 +61,12 @@ else
                     <i class="bi bi-trash"></i> Eliminar
                 </button>
                 <a href="/Cliente/Index" class="btn btn-outline-primary">
+
+            <div class="card-footer text-center">
+                <button class="btn btn-outline-danger me-2" @onclick="EliminarClienteConfirmado">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+                <a href="/Clientes/Index" class="btn btn-outline-primary">
                     <i class="bi bi-box-arrow-left"></i> Volver
                 </a>
             </div>
@@ -80,6 +101,37 @@ else
             else
             {
                 toastService.ShowError("Error al eliminar el cliente.");
+
+    [Parameter]
+    public int ClienteId { get; set; }
+
+    public Clientes? Cliente { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Cliente = await clienteService.Buscar(ClienteId);
+
+        if (Cliente == null)
+        {
+            toastService.ShowError($"Cliente con ID {ClienteId} no encontrado.");
+            navigationManager.NavigateTo("/Clientes/Index");
+        }
+    }
+
+    private async Task EliminarClienteConfirmado()
+    {
+        if (Cliente != null)
+        {
+            var eliminado = await clienteService.Eliminar(Cliente.ClienteId);
+
+            if (eliminado)
+            {
+                toastService.ShowSuccess("Cliente eliminado correctamente.");
+                navigationManager.NavigateTo("/Clientes/Index");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo eliminar el cliente. Verifique si tiene dependencias.");
             }
         }
     }

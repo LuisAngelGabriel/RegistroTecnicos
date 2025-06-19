@@ -11,12 +11,12 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddBlazoredToast();
 
-var ConStr = builder.Configuration.GetConnectionString("DefaultConnection");
+var ConStr = builder.Configuration.GetConnectionString("SqlConStr");
 
-builder.Services.AddDbContextFactory<Contexto>(options =>
-    options.UseSqlite(ConStr));
+builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlServer(ConStr));
 
 builder.Services.AddScoped<TecnicoService>();
+builder.Services.AddScoped<ClienteService>();   
 
 
 var app = builder.Build();

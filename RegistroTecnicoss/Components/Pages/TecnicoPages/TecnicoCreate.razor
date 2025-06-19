@@ -1,4 +1,4 @@
-﻿@page "/Tecnico/Create"
+@page "/Tecnico/Create"
 @inject TecnicoService tecnicoService
 @inject Blazored.Toast.Services.IToastService toastService
 @inject NavigationManager navigationManager
@@ -54,6 +54,23 @@
 
 @code {
     public RegistroTecnicoss.Models.Tecnico Tecnico { get; set; } = new();
+    public Models.Tecnico Tecnico { get; set; } = new Models.Tecnico();
+    private string Message { get; set; } = string.Empty;
+    private int ProximoId { get; set; }
+    public RegistroTecnicoss.Models.Tecnicos Tecnico { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProximoId = await ObtenerSiguienteId();
+    }
+
+        bool nombreDuplicado = await tecnicoService.ExisteNombre(Tecnico.Nombre);
+
+    private async Task<int> ObtenerSiguienteId()
+    {
+        var lista = await tecnicoService.Listar(t => true);
+        return (lista == null || !lista.Any()) ? 1 : lista.Max(t => t.TecnicoId) + 1;
+    }
 
     private async Task GuardarTecnico()
     {
@@ -84,4 +101,4 @@
     }
 }
 
-
+}

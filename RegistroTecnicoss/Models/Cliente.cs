@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RegistroTecnicoss.Models
 {
-    public class Cliente
+    
+    public class Clientes
     {
 
         [Key]
@@ -27,11 +28,14 @@ namespace RegistroTecnicoss.Models
         [Required(ErrorMessage = "El límite de crédito es obligatorio")]
         [Range(0, 1000000, ErrorMessage = "El límite de crédito no puede superar 1,000,000")]
         public decimal LimiteCredito { get; set; } = 1000000;
+        [Range(1.00, 1000000.00, ErrorMessage = "El límite de crédito no puede superar 1,000,000")]
+        public double LimiteCredito { get; set; }
 
         [Required(ErrorMessage = "Debe seleccionar un técnico")]
         public int TecnicoId { get; set; }
 
         [ForeignKey("TecnicoId")]
         public Tecnico? Tecnico { get; set; }
+        public Tecnicos? Tecnico { get; set; }
     }
 }
