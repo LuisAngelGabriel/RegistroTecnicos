@@ -1,0 +1,159 @@
+﻿@page "/Sistema/Index"
+@using RegistroTecnicoss.Models.RegistroTecnicos.Models
+@inject SistemaService sistemasService
+@rendermode InteractiveServer
+
+<PageTitle>Consulta de Sistemas</PageTitle>
+
+<div class="card shadow-lg">
+    <div class="card-header bg-primary text-white">
+        <h3 class="card-title">Consulta de Sistemas</h3>
+    </div>
+
+    <div class="card-body">
+        <!-- Filtros -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <input type="number" class="form-control" placeholder="Sistema Id" @bind="filtro.SistemaId" />
+                    <button class="btn btn-outline-primary" @onclick="() => Buscar()">Buscar</button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Descripción" @bind="filtro.Descripcion" />
+                    <button class="btn btn-outline-secondary" @onclick="() => LimpiarFiltros()">Limpiar</button>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="row">
+                    <div class="col">
+                        <input type="date" class="form-control" @bind="filtro.Desde" />
+                    </div>
+                    <div class="col">
+                        <input type="date" class="form-control" @bind="filtro.Hasta" />
+                    </div>
+                    <div class="col">
+                        <select class="form-select" @bind="filtro.Complejidad">
+                            <option value="">Todas</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Media">Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Sistema Id</th>
+                        <th>Descripción</th>
+                        <th>Complejidad</th>
+                        <th>Precio</th>
+                        <th>Existencia</th>
+                        <th>Fecha Creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (sistemas == null)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center">Cargando...</td>
+                        </tr>
+                    }
+                    else if (!sistemas.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center">No hay sistemas registrados</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var sistema in sistemas)
+                        {
+                            <tr>
+                                <td>@sistema.SistemaId</td>
+                                <td>@sistema.Descripcion</td>
+                                <td>
+                                    <span class="badge @GetBadgeClass(sistema.Complejidad)">
+                                        @sistema.Complejidad
+                                    </span>
+                                </td>
+                                <td>@sistema.Precio.ToString("C2")</td>
+                                <td>@sistema.Existencia</td>
+                                <td>@sistema.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <a href="@($"/Sistemas/Editar/{sistema.SistemaId}")" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Sistemas>? sistemas;
+    private readonly FiltroSistemas filtro = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarSistemas();
+    }
+
+    private async Task CargarSistemas()
+    {
+        sistemas = await sistemasService.ListarTodo();
+    }
+
+    private async Task Buscar()
+    {
+        sistemas = await sistemasService.Listar(s =>
+            (filtro.SistemaId == 0 || s.SistemaId == filtro.SistemaId) &&
+            (string.IsNullOrEmpty(filtro.Descripcion) || s.Descripcion.Contains(filtro.Descripcion)) &&
+            (string.IsNullOrEmpty(filtro.Complejidad) || s.Complejidad == filtro.Complejidad) &&
+            (filtro.Desde == null || s.FechaCreacion >= filtro.Desde) &&
+            (filtro.Hasta == null || s.FechaCreacion <= filtro.Hasta)
+        );
+    }
+
+    private async Task LimpiarFiltros()
+    {
+        filtro.Reset();
+        await CargarSistemas();
+    }
+
+    private string GetBadgeClass(string complejidad) => complejidad switch
+    {
+        "Alta" => "bg-danger",
+        "Media" => "bg-warning text-dark",
+        "Baja" => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    private class FiltroSistemas
+    {
+        public int SistemaId { get; set; }
+        public string Descripcion { get; set; } = string.Empty;
+        public string? Complejidad { get; set; }
+        public DateTime? Desde { get; set; }
+        public DateTime? Hasta { get; set; }
+
+        public void Reset()
+        {
+            SistemaId = 0;
+            Descripcion = string.Empty;
+            Complejidad = null;
+            Desde = null;
+            Hasta = null;
+        }
+    }
+}
